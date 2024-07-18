@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var wordsGuessed = 0
-    @State private var wordsMissed = 0
-    @State private var currentWordIndex = 0
+    @State private var wordsGuessed = 0         // 一個單字中猜中了多少字母
+    @State private var wordsMissed = 0          // 一個單字中錯失了多少字母
+    @State private var currentWordIndex = 0     // 現在猜的是第幾個單字
     @State private var wordToGuess = ""
     @State private var revealedWord = ""
     @State private var lettersGuessed = ""
@@ -63,39 +63,31 @@ struct ContentView: View {
                             RoundedRectangle(cornerRadius: 5)
                                 .stroke(.green, lineWidth: 2)
                         }
-                        .keyboardType(.asciiCapable)  // 使用asciiCapable的形式，避免掉表情符號的輸入
-                        .submitLabel(.done)  // 鍵盤右下角要按鍵要顯示什麼字
-                        .autocorrectionDisabled() // 隱藏打字會提示的單字
-                        .textInputAutocapitalization(.characters) // 不管大小寫都顯示大寫
+                        .keyboardType(.asciiCapable)    // 使用asciiCapable的形式，避免掉表情符號的輸入
+                        .submitLabel(.done)             // 鍵盤右下角要按鍵要顯示什麼字
+                        .autocorrectionDisabled()       // 隱藏打字會提示的單字
+                        .textInputAutocapitalization(.characters)       // 不管大小寫都顯示大寫
                         .onChange(of: guessedLetter) {  // 如果猜字有變化的話
                             guessedLetter = guessedLetter.trimmingCharacters(in: .letters.inverted) // 把不是字母的字元無效化
-                            guard let lastChar = guessedLetter.last else { // 如果輸入的最後是nil就return
+                            guard let lastChar = guessedLetter.last else {  // 如果輸入的最後是nil就return
                                 return
                             }
-                            guessedLetter = String(lastChar).uppercased() // 否則就把最後輸入的字母當作猜測的字母
+                            guessedLetter = String(lastChar).uppercased()   // 否則就把最後輸入的字母當作猜測的字母
+                        }
+                        .onSubmit {
+                            guard guessedLetter != "" else {    // 若沒有輸入就按done submit的話就return
+                                return
+                            }
+                            guessALetter()
                         }
                         .focused($textFieldIsFocused)   // 如果有focus在這個元件上才會顯示鍵盤
                     
                     Button("Guess a Letter") {
-                        textFieldIsFocused = false
-                        lettersGuessed += guessedLetter  // 每次按此按鈕就把猜測的letters加上剛剛輸入的最後一個字母
-                        revealedWord = ""
-                        for letter in wordToGuess {
-                            // check if letter in wordToGuess is in lettersGuessed
-                            if lettersGuessed.contains(letter) {
-                                // If yes, reveal it.
-                                revealedWord += "\(letter) "
-                            } else {
-                                // If not, keep it underscore.
-                                revealedWord += "_ "
-                            }
-                        }
-                        revealedWord.removeLast()
-                        guessedLetter = ""
+                        guessALetter()
                     }
                     .buttonStyle(.bordered)
                     .tint(.mint)
-                    .disabled(guessedLetter.isEmpty)  // 如果沒有猜字母的話按鍵不會作用
+                    .disabled(guessedLetter.isEmpty)    // 如果沒有猜字母的話按鍵不會作用
                 }
             } else {
                 Button("Another Word?") {
@@ -118,6 +110,24 @@ struct ContentView: View {
             // Create a String From a Repeating Value
             revealedWord = "_" + String(repeating: " _", count: wordToGuess.count - 1)
         })
+    }
+    
+    func guessALetter() {
+        textFieldIsFocused = false
+        lettersGuessed += guessedLetter  // 每次按此按鈕就把猜測的letters加上剛剛輸入的最後一個字母
+        revealedWord = ""
+        for letter in wordToGuess {
+            // check if letter in wordToGuess is in lettersGuessed
+            if lettersGuessed.contains(letter) {
+                // If yes, reveal it.
+                revealedWord += "\(letter) "
+            } else {
+                // If not, keep it underscore.
+                revealedWord += "_ "
+            }
+        }
+        revealedWord.removeLast()
+        guessedLetter = ""
     }
 }
 
